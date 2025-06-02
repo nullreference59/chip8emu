@@ -173,20 +173,23 @@ namespace Chip8Emu {
                 var x = xCoord;
                 var sprite = memory[I + row];
 
-                // for each bit in the current sprite, if 1, turn the pixel on
-                for(int bit = 0; bit < 8; bit++) {
+                // Starting with most significant bit
+                for (int bit = 7; bit >= 0; bit--) {
 
-                    //if x is greater than max width, break
                     if (x >= Constants.Width)
                         break;
 
-                    bool currentBit = (sprite & (1 << bit)) != 0;
+                    var currentBit = ((sprite >> bit) & 1) != 0;
 
-                    // If the current sprite bit is on, and the pixel on the display is currently on
-                    if(currentBit && Graphics[x, y] == true) {
-                        V[0xF] = 1;
+                    // if current bit is true and specified pixel is on, indicate collision
+                    if(currentBit && Graphics[x,y]) {
+                        V[0xf] = 1;
                     } else if (currentBit) {
-                        Graphics[x, y] = true;
+                        //if (Graphics[x,y]) {
+                        //    Graphics[x, y] = false;
+                        //} else Graphics[x,y] = true;
+
+                        Graphics[x, y] ^= true;
                     }
                     x++;
                 }
