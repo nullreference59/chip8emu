@@ -1,5 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Chip8Emu {
 
         public IEmulator? Emulator;
         public Window(int height, int width, string title) : base(GameWindowSettings.Default, 
-            new NativeWindowSettings() { ClientSize=new Vector2i(width,height), Title = title }) {
+            new NativeWindowSettings() { ClientSize=new Vector2i(width,height), Title = title, Profile = ContextProfile.Compatability }) {
 
         }
 
@@ -32,10 +33,16 @@ namespace Chip8Emu {
             SwapBuffers();
         }
 
-        public override void Run() {
+        protected override void OnUpdateFrame(FrameEventArgs args) {
+            base.OnUpdateFrame(args);
+            
+            Emulator.ExecuteCycle();
+        }
 
-            Emulator?.Run();
-            base.Run();
+        protected override void OnResize(ResizeEventArgs e) {
+            base.OnResize(e);
+
+            GL.Viewport(0, 0, e.Width, e.Height);
         }
 
         public void Render() {

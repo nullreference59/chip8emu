@@ -10,7 +10,7 @@ namespace Chip8Emu {
 
     public interface IEmulator {
         void Reset();
-        void Run();
+        void ExecuteCycle();
 
         bool[,] Graphics { get; }
     }
@@ -49,33 +49,15 @@ namespace Chip8Emu {
             Graphics = new bool[Constants.Width, Constants.Height];
         }
 
-        public void Run() {
-            var instructionsPerSecondTarget = Constants.InstructionsPerSecond;
-            var instructionTimeTarget = 1000 / instructionsPerSecondTarget;
-            var stopwatch = new Stopwatch();
+        public void ExecuteCycle() {
 
-            do {
-                stopwatch.Restart();
-
-                //Fetch + Decode
-                var instruction = GetDecodedInstruction(memory[PC], memory[PC + 1]);
+            //Fetch + Decode
+            var instruction = GetDecodedInstruction(memory[PC], memory[PC + 1]);
                 
-                PC += 2;
+            PC += 2;
 
-                //Execute
-                ExecuteInstruction(instruction);
-
-                stopwatch.Stop();
-
-                var elapsed = stopwatch.Elapsed.TotalMilliseconds;
-                var sleepTime = instructionTimeTarget - elapsed;
-
-                if(sleepTime > 0) {
-                    Thread.Sleep((int) sleepTime);
-                }
-
-            } while (true);
-
+            //Execute
+            ExecuteInstruction(instruction);
         }
 
         private Instruction GetDecodedInstruction(byte first, byte second) {
