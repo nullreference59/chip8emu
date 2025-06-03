@@ -106,6 +106,22 @@ namespace Chip8Emu {
                     //Set PC to NNN
                     OpCode1NNN(instruction);
                     break;
+                case 0x2000:
+                    //Subroutine
+                    OpCode2NNN(instruction);
+                    break;
+                case 0x3000:
+                    //Subroutine
+                    OpCode3NNN(instruction);
+                    break;
+                case 0x4000:
+                    //Subroutine
+                    OpCode4NNN(instruction);
+                    break;
+                case 0x5000:
+                    //Subroutine
+                    OpCode5XY0(instruction);
+                    break;
                 case 0x6000:
                     //Set V[X] to NN
                     OpCode6XNN(instruction);
@@ -140,16 +156,45 @@ namespace Chip8Emu {
             PC = instruction.NNN;
         }
 
-        private void OpCodeANNN(Instruction instruction) {
-            I = instruction.NNN;
+        private void OpCode2NNN(Instruction instruction) {
+            stack.Push(PC);
+            PC = instruction.NNN;
+        }
+
+        private void OpCode3NNN(Instruction instruction) {
+            if (V[instruction.X] == instruction.NN) {
+                PC += 2;
+            }
+        }
+
+        private void OpCode4NNN(Instruction instruction) {
+            if (V[instruction.X] != instruction.NN) {
+                PC += 2;
+            }
+        }
+
+        private void OpCode5XY0(Instruction instruction) {
+            if (V[instruction.X] == V[instruction.Y]){
+                PC += 2;
+            }
+        }
+
+        private void OpCode6XNN(Instruction instruction) {
+            V[instruction.X] = instruction.NN;
         }
 
         private void OpCode7XNN(Instruction instruction) {
             V[instruction.X] += instruction.NN;
         }
 
-        private void OpCode6XNN(Instruction instruction) {
-            V[instruction.X] = instruction.NN;
+        private void OpCode9XY0(Instruction instruction) {
+            if(V[instruction.X] != V[instruction.Y]) {
+                PC += 2;
+            }
+        }
+
+        private void OpCodeANNN(Instruction instruction) {
+            I = instruction.NNN;
         }
 
         // Source: https://stackoverflow.com/questions/17346592/how-does-chip-8-graphics-rendered-on-screen
@@ -185,10 +230,8 @@ namespace Chip8Emu {
                     if(currentBit && Graphics[x,y]) {
                         V[0xf] = 1;
                     } else if (currentBit) {
-                        //if (Graphics[x,y]) {
-                        //    Graphics[x, y] = false;
-                        //} else Graphics[x,y] = true;
-
+                       
+                        // XOR current bit and current pixel
                         Graphics[x, y] ^= true;
                     }
                     x++;

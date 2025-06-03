@@ -9,7 +9,9 @@ namespace Chip8Emu {
         public static void Main() {
 
             // Get the ibm test rom
-            var testRomPath = "J:\\dev\\chip8emu\\roms\\ibm-logo.ch8";
+            //var testRomPath = "J:\\dev\\chip8emu\\roms\\ibm-logo.ch8";
+
+            var testRomPath = "J:\\dev\\chip8emu\\roms\\bc_test.ch8";
 
             var rom = File.ReadAllBytes(testRomPath);
 
