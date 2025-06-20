@@ -89,8 +89,8 @@ namespace Chip8Emu {
         private void ExecuteInstruction(Instruction instruction) {
             var hexOpCode = instruction.OpCode.ToString("X");
             //Switch off of the first nibble of the OpCode
-             var inst = instruction.OpCode & 0xF000;
-            switch(inst) {
+            var inst = instruction.OpCode & 0xF000;
+            switch (inst) {
                 case 0x0000 when instruction.OpCode == 0x00E0:
                     OpCode00E0();
                     break;
@@ -111,15 +111,15 @@ namespace Chip8Emu {
                     OpCode2NNN(instruction);
                     break;
                 case 0x3000:
-                    //Subroutine
+                    //skip instruction if VX == NN
                     OpCode3NNN(instruction);
                     break;
                 case 0x4000:
-                    //Subroutine
+                    //skip instruction if VX != NN 
                     OpCode4NNN(instruction);
                     break;
                 case 0x5000:
-                    //Subroutine
+                    // skip instruction if VX==VY
                     OpCode5XY0(instruction);
                     break;
                 case 0x6000:
@@ -129,6 +129,50 @@ namespace Chip8Emu {
                 case 0x7000:
                     //Add NN to V[X]
                     OpCode7XNN(instruction);
+                    break;
+                case 0x8000:
+                    switch (instruction.OpCode & 0x000F) {
+                        case 0:
+                            //VX is set to VY
+                            OpCode8XY0(instruction);
+                            break;
+                        case 1:
+                            // VX = VX | VY
+                            OpCode8XY1(instruction);
+                            break;
+                        case 2:
+                            // VX = VX & VY
+                            OpCode8XY2(instruction);
+                            break;
+                        case 3:
+                            // VX = VX XOR VY
+                            OpCode8XY3(instruction);
+                            break;
+                        case 4:
+                            // VX = VX + VY
+                            OpCode8XY4(instruction);
+                            break;
+                        case 5:
+                            // VX = VX - VY
+                            OpCode8XY5(instruction);
+                            break;
+                        case 6:
+                            // Shift the value of VX on bit right
+                            OpCode8XY6(instruction);
+                            break;
+                        case 7:
+                            // VX = VY - VX
+                            OpCode8XY7(instruction);
+                            break;
+                        case 0xE:
+                            // Shift the value of VX on bit left
+                            OpCode8XYE(instruction);
+                            break;
+                    }
+                    break;
+                case 0x9000:
+                    //Skip instruction if VX!=VY
+                    OpCode9XY0(instruction);
                     break;
                 case 0xA000:
                     //Set index register to NNN
@@ -185,6 +229,54 @@ namespace Chip8Emu {
 
         private void OpCode7XNN(Instruction instruction) {
             V[instruction.X] += instruction.NN;
+        }
+
+        private void OpCode8XY0(Instruction instruction) {
+            V[instruction.X] = V[instruction.Y];
+        }
+
+        private void OpCode8XY1(Instruction instruction) {
+            V[instruction.X] = (byte) (V[instruction.X] | V[instruction.Y]);
+        }
+
+        private void OpCode8XY2(Instruction instruction) {
+            V[instruction.X] = (byte)(V[instruction.X] & V[instruction.Y]);
+        }
+        private void OpCode8XY3(Instruction instruction) {
+            V[instruction.X] = (byte)(V[instruction.X] ^ V[instruction.Y]);
+        }
+        private void OpCode8XY4(Instruction instruction) {
+            if (V[instruction.Y] > (0xFF - V[instruction.X]))
+                V[0xF] = 1;
+            else
+                V[0xF] = 0;
+
+            V[instruction.X] = (byte)(V[instruction.X] + V[instruction.Y]);
+        }
+        private void OpCode8XY5(Instruction instruction) {
+            if (V[instruction.Y] > V[instruction.X])
+                V[0xF] = 0;
+            else
+                V[0xF] = 1;
+
+            V[instruction.X] = (byte)(V[instruction.X] - V[instruction.Y]);
+        }
+        private void OpCode8XY6(Instruction instruction) {
+            V[0xF] = (byte)(V[instruction.X] & 0x1);
+            V[instruction.X] >>= 0x1;
+        }
+
+        private void OpCode8XY7(Instruction instruction) {
+            int diff = V[instruction.Y] - V[instruction.X];
+            V[instruction.X] = (byte)(diff & 0xFF);
+            V[0xF] = (byte)(diff > 0 ? 1 : 0);
+
+            V[instruction.X] = (byte)(V[instruction.Y] - V[instruction.X]);
+        }
+
+        private void OpCode8XYE(Instruction instruction) {
+            V[0xF] = (byte)((V[instruction.X] & 0x80) >> 7);
+            V[instruction.X] <<= 0x1;
         }
 
         private void OpCode9XY0(Instruction instruction) {
